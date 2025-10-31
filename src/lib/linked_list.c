@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-LinkedList* LinkedList_create() {
+LinkedList* linked_list_create() {
     LinkedList* newList = calloc(
         1, sizeof(LinkedList)); /* zeroed allocation, just what we need */
     if (!newList) {
@@ -13,7 +13,7 @@ LinkedList* LinkedList_create() {
     return newList;
 }
 
-Node* LinkedList_get_index(LinkedList* list, size_t index) {
+Node* linked_list_get_index(LinkedList* list, size_t index) {
     if (list == NULL || index >= list->size)
         return NULL;
 
@@ -37,7 +37,7 @@ Node* LinkedList_get_index(LinkedList* list, size_t index) {
     return cur;
 }
 
-int LinkedList_append(LinkedList* list, void* item) {
+int linked_list_append(LinkedList* list, void* item) {
     if (list == NULL)
         return 1;
     Node* newNode = calloc(1, sizeof(Node));
@@ -58,12 +58,12 @@ int LinkedList_append(LinkedList* list, void* item) {
     return 0;
 }
 
-int LinkedList_insert(LinkedList* list, size_t index, void* item) {
+int linked_list_insert(LinkedList* list, size_t index, void* item) {
     if (list == NULL)
         return 1;
     if (index >= list->size)
-        return LinkedList_append(list, item); /* append fallback */
-    Node* target = LinkedList_get_index(list, index);
+        return linked_list_append(list, item); /* append fallback */
+    Node* target = linked_list_get_index(list, index);
     if (target == NULL)
         return 1;
 
@@ -87,7 +87,7 @@ int LinkedList_insert(LinkedList* list, size_t index, void* item) {
     return 0;
 }
 
-int LinkedList_remove(LinkedList* list, Node* item,
+int linked_list_remove(LinkedList* list, Node* item,
                       void (*free_function)(void*)) {
     if (list == NULL || item == NULL)
         return 1;
@@ -121,15 +121,15 @@ int LinkedList_remove(LinkedList* list, Node* item,
     return 0;
 }
 
-int LinkedList_pop(LinkedList* list, size_t index,
+int linked_list_pop(LinkedList* list, size_t index,
                    void (*free_function)(void*)) {
-    Node* item = LinkedList_get_index(list, index);
+    Node* item = linked_list_get_index(list, index);
     if (item == NULL)
         return 1;
-    return LinkedList_remove(list, item, free_function);
+    return linked_list_remove(list, item, free_function);
 }
 
-void LinkedList_clear(LinkedList* list, void (*free_function)(void*)) {
+void linked_list_clear(LinkedList* list, void (*free_function)(void*)) {
     if (list == NULL)
         return;
     Node* cur = list->head;
@@ -146,8 +146,8 @@ void LinkedList_clear(LinkedList* list, void (*free_function)(void*)) {
     list->tail = NULL;
     list->size = 0;
 }
-void LinkedList_dispose(LinkedList** list, void (*free_function)(void*)) {
-    LinkedList_clear(*list, free_function);
+void linked_list_dispose(LinkedList** list, void (*free_function)(void*)) {
+    linked_list_clear(*list, free_function);
     free(*list);
     *list = NULL;
 }

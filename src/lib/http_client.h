@@ -32,12 +32,12 @@ int http_client_connect(HttpClient* c, const char* host, const char* port);
 /// Uses Connection: close header to intsantly close.
 /// Adds correct body length header
 int http_client_write(HttpClient* c, const char* endpoint, const char* method,
-                     const char* body);
+                      const char* body);
 
 // Reads all data that it can into the give buffer at once.
 // If the buffer is too small the message will be cut of.
 int http_client_read(HttpClient* c, uint8_t* buf, int len,
-                    ResponseCallback callback);
+                     ResponseCallback callback);
 
 void http_client_disconnect(HttpClient* c);
 

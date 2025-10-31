@@ -1,111 +1,122 @@
 #include "tcp_server.h"
 
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 //-----------------Internal Functions-----------------
 
-void TCPServer_TaskWork(void* _Context, uint64_t _MonTime);
+void tcp_server_task_work(void* context, uint64_t mon_time);
 
 //----------------------------------------------------
 
-int TCPServer_Initiate(TCPServer* _Server, const char* _Port,
-                       TCPServer_OnAccept _OnAccept, void* _Context) {
-    _Server->onAccept = _OnAccept;
-    _Server->context  = _Context;
+int tcp_server_initiate(TCPServer* server, const char* port,
+                        TcpServerOnAccept on_accept, void* context) {
+    server->onAccept = on_accept;
+    server->context  = context;
 
     struct addrinfo hints = {0}, *res = NULL;
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE;
 
-    if (getaddrinfo(NULL, _Port, &hints, &res) != 0)
+    if (getaddrinfo(NULL, port, &hints, &res) != 0) {
         return -1;
+    }
 
     int fd = -1;
     for (struct addrinfo* rp = res; rp; rp = rp->ai_next) {
         fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (fd < 0)
+        if (fd < 0) {
             continue;
+        }
 
         int yes = 1;
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-        if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
+        if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0) {
             break;
+        }
 
         close(fd);
         fd = -1;
     }
 
     freeaddrinfo(res);
-    if (fd < 0)
+    if (fd < 0) {
         return -1;
+    }
 
     if (listen(fd, MAX_CLIENTS) < 0) {
         close(fd);
         return -1;
     }
 
-    TCPServer_Nonblocking(fd);
+    tcp_server_nonblocking(fd);
 
-    _Server->listen_fd = fd;
+    server->listen_fd = fd;
 
-    _Server->task = smw_createTask(_Server, TCPServer_TaskWork);
+    server->task = smw_createTask(server, tcp_server_task_work);
 
     return 0;
 }
 
-int TCPServer_InitiatePtr(const char* _Port, TCPServer_OnAccept _OnAccept,
-                          void* _Context, TCPServer** _ServerPtr) {
-    if (_ServerPtr == NULL)
+int tcp_server_initiate_ptr(const char* port, TcpServerOnAccept on_accept,
+                            void* context, TCPServer** server_ptr) {
+    if (server_ptr == NULL) {
         return -1;
+    }
 
-    TCPServer* _Server = (TCPServer*)malloc(sizeof(TCPServer));
-    if (_Server == NULL)
+    TCPServer* server = (TCPServer*)malloc(sizeof(TCPServer));
+    if (server == NULL) {
         return -2;
+    }
 
-    int result = TCPServer_Initiate(_Server, _Port, _OnAccept, _Context);
+    int result = tcp_server_initiate(server, port, on_accept, context);
     if (result != 0) {
-        free(_Server);
+        free(server);
         return result;
     }
 
-    *(_ServerPtr) = _Server;
+    *(server_ptr) = server;
 
     return 0;
 }
 
-int TCPServer_Accept(TCPServer* _Server) {
-    int socket_fd = accept(_Server->listen_fd, NULL, NULL);
+int tcp_server_accept(TCPServer* server) {
+    int socket_fd = accept(server->listen_fd, NULL, NULL);
     if (socket_fd < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return 0; // ingen ny klient
+        }
 
         perror("accept");
         return -1;
     }
 
-    TCPServer_Nonblocking(socket_fd);
+    tcp_server_nonblocking(socket_fd);
 
-    int result = _Server->onAccept(socket_fd, _Server->context);
-    if (result != 0)
+    int result = server->onAccept(socket_fd, server->context);
+    if (result != 0) {
         close(socket_fd);
+    }
 
     return 0;
 }
 
-void TCPServer_TaskWork(void* _Context, uint64_t _MonTime) {
-    TCPServer* _Server = (TCPServer*)_Context;
+void tcp_server_task_work(void* context, uint64_t mon_time) {
+    TCPServer* server = (TCPServer*)context;
 
-    TCPServer_Accept(_Server);
+    tcp_server_accept(server);
 }
 
-void TCPServer_Dispose(TCPServer* _Server) { smw_destroyTask(_Server->task); }
+void tcp_server_dispose(TCPServer* server) { smw_destroyTask(server->task); }
 
-void TCPServer_DisposePtr(TCPServer** _ServerPtr) {
-    if (_ServerPtr == NULL || *(_ServerPtr) == NULL)
+void tcp_server_dispose_ptr(TCPServer** server_ptr) {
+    if (server_ptr == NULL || *(server_ptr) == NULL) {
         return;
+    }
 
-    TCPServer_Dispose(*(_ServerPtr));
-    free(*(_ServerPtr));
-    *(_ServerPtr) = NULL;
+    tcp_server_dispose(*(server_ptr));
+    free(*(server_ptr));
+    *(server_ptr) = NULL;
 }

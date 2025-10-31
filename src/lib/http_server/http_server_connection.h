@@ -6,13 +6,13 @@
 
 #include <stdint.h>
 
-typedef int (*HTTPServerConnection_OnRequest)(void* _Context);
+typedef int (*HttpServerConnectionOnRequest)(void* context);
 
 typedef struct {
     TCPClient tcpClient;
 
-    void*                          context;
-    HTTPServerConnection_OnRequest onRequest;
+    void*                         context;
+    HttpServerConnectionOnRequest onRequest;
 
     char* method;
     char* url;
@@ -26,15 +26,15 @@ typedef struct {
 
 } HTTPServerConnection;
 
-int HTTPServerConnection_Initiate(HTTPServerConnection* _Connection, int _FD);
-int HTTPServerConnection_InitiatePtr(int                    _FD,
-                                     HTTPServerConnection** _ConnectionPtr);
+int http_server_connection_initiate(HTTPServerConnection* connection, int fd);
+int http_server_connection_initiate_ptr(int                    fd,
+                                        HTTPServerConnection** connection_ptr);
 
-void HTTPServerConnection_SetCallback(
-    HTTPServerConnection* _Connection, void* _Context,
-    HTTPServerConnection_OnRequest _OnRequest);
+void http_server_connection_set_callback(
+    HTTPServerConnection* connection, void* context,
+    HttpServerConnectionOnRequest on_request);
 
-void HTTPServerConnection_Dispose(HTTPServerConnection* _Connection);
-void HTTPServerConnection_DisposePtr(HTTPServerConnection** _ConnectionPtr);
+void http_server_connection_dispose(HTTPServerConnection* connection);
+void http_server_connection_dispose_ptr(HTTPServerConnection** connection_ptr);
 
 #endif // HTTP_SERVER_CONNECTION_H

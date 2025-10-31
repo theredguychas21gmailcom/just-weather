@@ -15,21 +15,21 @@ typedef struct {
     int fd;
 } TCPClient;
 
-int TCPClient_Initiate(TCPClient* c, int _FD);
+int tcp_client_initiate(TCPClient* c, int fd);
 
-int TCPClient_Connect(TCPClient* c, const char* host, const char* port);
+int tcp_client_connect(TCPClient* c, const char* host, const char* port);
 
-int TCPClient_Write(TCPClient* c, const uint8_t* buf, int len);
-int TCPClient_Read(TCPClient* c, uint8_t* buf, int len);
+int tcp_client_write(TCPClient* c, const uint8_t* buf, int len);
+int tcp_client_read(TCPClient* c, uint8_t* buf, int len);
 
-int TCPClient_WriteAll(TCPClient* c, const uint8_t* buf, int len);
+int tcp_client_write_all(TCPClient* c, const uint8_t* buf, int len);
 
 // Reads all data that it can into the give buffer at once.
 // If the buffer is too small the message will be cut of.
-int TCPClient_ReadAll(TCPClient* c, uint8_t* buf, int len);
+int tcp_client_read_all(TCPClient* c, uint8_t* buf, int len);
 
-void TCPClient_Disconnect(TCPClient* c);
+void tcp_client_disconnect(TCPClient* c);
 
-void TCPClient_Dispose(TCPClient* c);
+void tcp_client_dispose(TCPClient* c);
 
 #endif // TCP_CLIENT_H

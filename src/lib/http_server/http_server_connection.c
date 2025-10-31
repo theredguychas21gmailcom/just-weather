@@ -7,89 +7,91 @@
 
 //-----------------Internal Functions-----------------
 
-void HTTPServerConnection_TaskWork(void* _Context, uint64_t _MonTime);
+void http_server_connection_task_work(void* context, uint64_t mon_time);
 
 //----------------------------------------------------
 
-int HTTPServerConnection_Initiate(HTTPServerConnection* _Connection, int _FD) {
-    TCPClient_Initiate(&_Connection->tcpClient, _FD);
-    _Connection->buffer = NULL;
+int http_server_connection_initiate(HTTPServerConnection* connection, int fd) {
+    tcp_client_initiate(&connection->tcpClient, fd);
+    connection->buffer = NULL;
 
-    _Connection->task =
-        smw_createTask(_Connection, HTTPServerConnection_TaskWork);
+    connection->task =
+        smw_createTask(connection, http_server_connection_task_work);
 
     return 0;
 }
 
-int HTTPServerConnection_InitiatePtr(int                    _FD,
-                                     HTTPServerConnection** _ConnectionPtr) {
-    if (_ConnectionPtr == NULL)
+int http_server_connection_initiate_ptr(int                    fd,
+                                        HTTPServerConnection** connection_ptr) {
+    if (connection_ptr == NULL) {
         return -1;
+    }
 
-    HTTPServerConnection* _Connection =
+    HTTPServerConnection* connection =
         (HTTPServerConnection*)malloc(sizeof(HTTPServerConnection));
-    if (_Connection == NULL)
+    if (connection == NULL) {
         return -2;
+    }
 
-    int result = HTTPServerConnection_Initiate(_Connection, _FD);
+    int result = http_server_connection_initiate(connection, fd);
     if (result != 0) {
-        free(_Connection);
+        free(connection);
         return result;
     }
 
-    *(_ConnectionPtr) = _Connection;
+    *(connection_ptr) = connection;
 
     return 0;
 }
 
-void HTTPServerConnection_SetCallback(
-    HTTPServerConnection* _Connection, void* _Context,
-    HTTPServerConnection_OnRequest _OnRequest) {
-    _Connection->context   = _Context;
-    _Connection->onRequest = _OnRequest;
+void http_server_connection_set_callback(
+    HTTPServerConnection* connection, void* context,
+    HttpServerConnectionOnRequest on_request) {
+    connection->context   = context;
+    connection->onRequest = on_request;
 }
 
-void HTTPServerConnection_TaskWork(void* _Context, uint64_t _MonTime) {
-    HTTPServerConnection* _Connection = (HTTPServerConnection*)_Context;
+void http_server_connection_task_work(void* context, uint64_t mon_time) {
+    HTTPServerConnection* connection = (HTTPServerConnection*)context;
     uint8_t               chunk_buffer[256];
 
-    int bytes_read = TCPClient_Read(&_Connection->tcpClient, chunk_buffer,
-                                    sizeof(chunk_buffer));
+    int bytes_read = tcp_client_read(&connection->tcpClient, chunk_buffer,
+                                     sizeof(chunk_buffer));
 
     if (bytes_read > 0) {
-        int      new_size   = _Connection->buffer_size + bytes_read;
-        uint8_t* new_buffer = realloc(_Connection->buffer, new_size);
+        int      new_size   = connection->buffer_size + bytes_read;
+        uint8_t* new_buffer = realloc(connection->buffer, new_size);
         if (!new_buffer) {
             return;
         }
-        _Connection->buffer = new_buffer;
-        memcpy(_Connection->buffer + _Connection->buffer_size, chunk_buffer,
+        connection->buffer = new_buffer;
+        memcpy(connection->buffer + connection->buffer_size, chunk_buffer,
                bytes_read);
-        _Connection->buffer_size += bytes_read;
+        connection->buffer_size += bytes_read;
 
-        if (!_Connection->headers) {
-            for (int i = 0; i <= _Connection->buffer_size - 4; i++) {
-                if (_Connection->buffer[i] == '\r' &&
-                    _Connection->buffer[i + 1] == '\n' &&
-                    _Connection->buffer[i + 2] == '\r' &&
-                    _Connection->buffer[i + 3] == '\n') {
-                    int header_length    = i + 4;
-                    _Connection->headers = malloc(header_length + 1);
-                    if (!_Connection->headers) {
+        if (!connection->headers) {
+            for (int i = 0; i <= connection->buffer_size - 4; i++) {
+                if (connection->buffer[i] == '\r' &&
+                    connection->buffer[i + 1] == '\n' &&
+                    connection->buffer[i + 2] == '\r' &&
+                    connection->buffer[i + 3] == '\n') {
+                    int header_length   = i + 4;
+                    connection->headers = malloc(header_length + 1);
+                    if (!connection->headers) {
                         return;
                     }
-                    memcpy(_Connection->headers, _Connection->buffer,
+                    memcpy(connection->headers, connection->buffer,
                            header_length);
-                    _Connection->headers[header_length] = '\0';
+                    connection->headers[header_length] = '\0';
                     break;
                 }
             }
 
-            if (_Connection->headers) {
+            if (connection->headers) {
                 char method[8] = {0};
                 char url[256]  = {0};
 
-                char* data = (char*)_Connection->headers;
+                char* data = (char*)connection->headers;
 
                 // 1️⃣ Get the first word (method)
                 sscanf(data, "%7s", method);
@@ -103,24 +105,24 @@ void HTTPServerConnection_TaskWork(void* _Context, uint64_t _MonTime) {
                 printf("%s\n", method);
                 printf("%s\n", url);
 
-                _Connection->method = strdup(method);
-                _Connection->url    = strdup(url);
-                _Connection->onRequest(_Connection);
+                connection->method = strdup(method);
+                connection->url    = strdup(url);
+                connection->onRequest(connection);
             }
         }
     }
 }
 
-void HTTPServerConnection_Dispose(HTTPServerConnection* _Connection) {
-    TCPClient_Dispose(&_Connection->tcpClient);
+void http_server_connection_dispose(HTTPServerConnection* _Connection) {
+    tcp_client_dispose(&_Connection->tcpClient);
     smw_destroyTask(_Connection->task);
 }
 
-void HTTPServerConnection_DisposePtr(HTTPServerConnection** _ConnectionPtr) {
+void http_server_connection_dispose_ptr(HTTPServerConnection** _ConnectionPtr) {
     if (_ConnectionPtr == NULL || *(_ConnectionPtr) == NULL)
         return;
 
-    HTTPServerConnection_Dispose(*(_ConnectionPtr));
+    http_server_connection_dispose(*(_ConnectionPtr));
     free(*(_ConnectionPtr));
     *(_ConnectionPtr) = NULL;
 }

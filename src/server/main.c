@@ -1,19 +1,19 @@
-#include "weather_server.h"
 #include "smw.h"
 #include "utils.h"
+#include "weather_server.h"
 
 int main() {
     smw_init();
 
     WeatherServer server;
-    WeatherServer_Initiate(&server);
+    weather_server_initiate(&server);
 
     while (1) {
 
         smw_work(SystemMonotonicMS());
     }
 
-    WeatherServer_Dispose(&server);
+    weather_server_dispose(&server);
 
     smw_dispose();
 

@@ -1,79 +1,86 @@
 #include "weather_server.h"
 
+#include "weather_server_instance.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 
 //-----------------Internal Functions-----------------
 
-void WeatherServer_TaskWork(void* _Context, uint64_t _MonTime);
-int  WeatherServer_OnHTTPConnection(void*                 _Context,
-                                    HTTPServerConnection* _Connection);
+void weather_server_task_work(void* context, uint64_t mon_time);
+int  weather_server_on_http_connection(void*                 context,
+                                       HTTPServerConnection* connection);
 
 //----------------------------------------------------
 
-int WeatherServer_Initiate(WeatherServer* _Server) {
-    HTTPServer_Initiate(&_Server->httpServer, WeatherServer_OnHTTPConnection);
+int weather_server_initiate(WeatherServer* server) {
+    http_server_initiate(&server->httpServer,
+                         weather_server_on_http_connection);
 
-    _Server->instances = LinkedList_create();
+    server->instances = linked_list_create();
 
-    _Server->task = smw_createTask(_Server, WeatherServer_TaskWork);
+    server->task = smw_createTask(server, weather_server_task_work);
 
     return 0;
 }
 
-int WeatherServer_InitiatePtr(WeatherServer** _ServerPtr) {
-    if (_ServerPtr == NULL)
+int weather_server_initiate_ptr(WeatherServer** server_ptr) {
+    if (server_ptr == NULL) {
         return -1;
+    }
 
-    WeatherServer* _Server = (WeatherServer*)malloc(sizeof(WeatherServer));
-    if (_Server == NULL)
+    WeatherServer* server = (WeatherServer*)malloc(sizeof(WeatherServer));
+    if (server == NULL) {
         return -2;
+    }
 
-    int result = WeatherServer_Initiate(_Server);
+    int result = weather_server_initiate(server);
     if (result != 0) {
-        free(_Server);
+        free(server);
         return result;
     }
 
-    *(_ServerPtr) = _Server;
+    *(server_ptr) = server;
 
     return 0;
 }
 
-int WeatherServer_OnHTTPConnection(void*                 _Context,
-                                   HTTPServerConnection* _Connection) {
-    WeatherServer* _Server = (WeatherServer*)_Context;
+int weather_server_on_http_connection(void*                 context,
+                                      HTTPServerConnection* connection) {
+    WeatherServer* server = (WeatherServer*)context;
 
     WeatherServerInstance* instance = NULL;
-    int result = WeatherServerInstance_InitiatePtr(_Connection, &instance);
+    int result = WeatherServerInstance_InitiatePtr(connection, &instance);
     if (result != 0) {
         printf("WeatherServer_OnHTTPConnection: Failed to initiate instance\n");
         return -1;
     }
 
-    LinkedList_append(_Server->instances, instance);
+    linked_list_append(server->instances, instance);
 
     return 0;
 }
 
-void WeatherServer_TaskWork(void* _Context, uint64_t _MonTime) {
-    WeatherServer* _Server = (WeatherServer*)_Context;
+void weather_server_task_work(void* context, uint64_t mon_time) {
+    WeatherServer* server = (WeatherServer*)context;
 
-    LinkedList_foreach(_Server->instances, node) {
+    LinkedList_foreach(server->instances, node) {
         WeatherServerInstance* instance = (WeatherServerInstance*)node->item;
-        WeatherServerInstance_Work(instance, _MonTime);
+        WeatherServerInstance_Work(instance, mon_time);
     }
 }
 
-void WeatherServer_Dispose(WeatherServer* _Server) {
-    HTTPServer_Dispose(&_Server->httpServer);
-    smw_destroyTask(_Server->task);
+void weather_server_dispose(WeatherServer* server) {
+    http_server_dispose(&server->httpServer);
+    smw_destroyTask(server->task);
 }
 
-void WeatherServer_DisposePtr(WeatherServer** _ServerPtr) {
-    if (_ServerPtr == NULL || *(_ServerPtr) == NULL)
+void weather_server_dispose_ptr(WeatherServer** server_ptr) {
+    if (server_ptr == NULL || *(server_ptr) == NULL) {
         return;
+    }
 
-    WeatherServer_Dispose(*(_ServerPtr));
-    free(*(_ServerPtr));
-    *(_ServerPtr) = NULL;
+    weather_server_dispose(*(server_ptr));
+    free(*(server_ptr));
+    *(server_ptr) = NULL;
 }

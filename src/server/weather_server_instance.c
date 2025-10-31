@@ -1,7 +1,7 @@
 #include "weather_server_instance.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //-----------------Internal Functions-----------------
 
@@ -13,7 +13,7 @@ int WeatherServerInstance_Initiate(WeatherServerInstance* _Instance,
                                    HTTPServerConnection*  _Connection) {
     _Instance->connection = _Connection;
 
-    HTTPServerConnection_SetCallback(_Instance->connection, _Instance,
+    http_server_connection_set_callback(_Instance->connection, _Instance,
                                      WeatherServerInstance_OnRequest);
 
     return 0;

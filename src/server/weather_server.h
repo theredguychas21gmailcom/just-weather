@@ -5,7 +5,6 @@
 #include "http_server/http_server.h"
 #include "linked_list.h"
 #include "smw.h"
-#include "weather_server_instance.h"
 
 typedef struct {
     HTTPServer httpServer;
@@ -16,10 +15,10 @@ typedef struct {
 
 } WeatherServer;
 
-int WeatherServer_Initiate(WeatherServer* _Server);
-int WeatherServer_InitiatePtr(WeatherServer** _ServerPtr);
+int weather_server_initiate(WeatherServer* server);
+int weather_server_initiate_ptr(WeatherServer** server_ptr);
 
-void WeatherServer_Dispose(WeatherServer* _Server);
-void WeatherServer_DisposePtr(WeatherServer** _ServerPtr);
+void weather_server_dispose(WeatherServer* server);
+void weather_server_dispose_ptr(WeatherServer** server_ptr);
 
 #endif // WEATHER_SERVER_H

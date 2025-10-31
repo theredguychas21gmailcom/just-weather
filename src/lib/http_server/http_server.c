@@ -1,75 +1,79 @@
 #include "http_server.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 //-----------------Internal Functions-----------------
 
-void HTTPServer_TaskWork(void* _Context, uint64_t _MonTime);
-int  HTTPServer_OnAccept(int _FD, void* _Context);
+void http_server_task_work(void* context, uint64_t mon_time);
+int  http_server_on_accept(int fd, void* context);
 
 //----------------------------------------------------
 
-int HTTPServer_Initiate(HTTPServer*             _Server,
-                        HTTPServer_OnConnection _OnConnection) {
-    _Server->onConnection = _OnConnection;
+int http_server_initiate(HTTPServer*            server,
+                         HttpServerOnConnection on_connection) {
+    server->onConnection = on_connection;
 
-    TCPServer_Initiate(&_Server->tcpServer, "8080", HTTPServer_OnAccept,
-                       _Server);
+    tcp_server_initiate(&server->tcpServer, "8080", http_server_on_accept,
+                        server);
 
-    _Server->task = smw_createTask(_Server, HTTPServer_TaskWork);
+    server->task = smw_createTask(server, http_server_task_work);
 
     return 0;
 }
 
-int HTTPServer_InitiatePtr(HTTPServer_OnConnection _OnConnection,
-                           HTTPServer**            _ServerPtr) {
-    if (_ServerPtr == NULL)
+int http_server_initiate_ptr(HttpServerOnConnection on_connection,
+                             HTTPServer**           server_ptr) {
+    if (server_ptr == NULL) {
         return -1;
+    }
 
-    HTTPServer* _Server = (HTTPServer*)malloc(sizeof(HTTPServer));
-    if (_Server == NULL)
+    HTTPServer* server = (HTTPServer*)malloc(sizeof(HTTPServer));
+    if (server == NULL) {
         return -2;
+    }
 
-    int result = HTTPServer_Initiate(_Server, _OnConnection);
+    int result = http_server_initiate(server, on_connection);
     if (result != 0) {
-        free(_Server);
+        free(server);
         return result;
     }
 
-    *(_ServerPtr) = _Server;
+    *(server_ptr) = server;
 
     return 0;
 }
 
-int HTTPServer_OnAccept(int _FD, void* _Context) {
-    HTTPServer* _Server = (HTTPServer*)_Context;
+int http_server_on_accept(int fd, void* context) {
+    HTTPServer* server = (HTTPServer*)context;
 
     HTTPServerConnection* connection = NULL;
-    int result = HTTPServerConnection_InitiatePtr(_FD, &connection);
+    int result = http_server_connection_initiate_ptr(fd, &connection);
     if (result != 0) {
         printf("HTTPServer_OnAccept: Failed to initiate connection\n");
         return -1;
     }
 
-    _Server->onConnection(_Server, connection);
+    server->onConnection(server, connection);
 
     return 0;
 }
 
-void HTTPServer_TaskWork(void* _Context, uint64_t _MonTime) {
+void http_server_task_work(void* context, uint64_t mon_time) {
     // HTTPServer* _Server = (HTTPServer*)_Context;
 }
 
-void HTTPServer_Dispose(HTTPServer* _Server) {
-    TCPServer_Dispose(&_Server->tcpServer);
-    smw_destroyTask(_Server->task);
+void http_server_dispose(HTTPServer* server) {
+    tcp_server_dispose(&server->tcpServer);
+    smw_destroyTask(server->task);
 }
 
-void HTTPServer_DisposePtr(HTTPServer** _ServerPtr) {
-    if (_ServerPtr == NULL || *(_ServerPtr) == NULL)
+void http_server_dispose_ptr(HTTPServer** server_ptr) {
+    if (server_ptr == NULL || *(server_ptr) == NULL) {
         return;
+    }
 
-    HTTPServer_Dispose(*(_ServerPtr));
-    free(*(_ServerPtr));
-    *(_ServerPtr) = NULL;
+    http_server_dispose(*(server_ptr));
+    free(*(server_ptr));
+    *(server_ptr) = NULL;
 }

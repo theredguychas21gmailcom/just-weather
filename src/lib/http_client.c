@@ -10,7 +10,7 @@
 
 void http_client_init(HttpClient* c, int fd) {
     TCPClient tcp_client;
-    TCPClient_Initiate(&tcp_client, fd);
+    tcp_client_initiate(&tcp_client, fd);
     c->tcp_client = tcp_client;
 }
 
@@ -27,7 +27,7 @@ int http_client_init_ptr(HttpClient** c, int fd) {
 
 int http_client_connect(HttpClient* c, const char* host, const char* port) {
     c->host = (char*)host;
-    return TCPClient_Connect(&c->tcp_client, host, port);
+    return tcp_client_connect(&c->tcp_client, host, port);
 }
 
 int http_client_write(HttpClient* c, const char* endpoint, const char* method,
@@ -61,7 +61,7 @@ int http_client_write(HttpClient* c, const char* endpoint, const char* method,
         return -1;
     }
 
-    int sent = TCPClient_WriteAll(&c->tcp_client, (const uint8_t*)request,
+    int sent = tcp_client_write_all(&c->tcp_client, (const uint8_t*)request,
                                   bytes_written);
     free(request);
 
@@ -70,16 +70,16 @@ int http_client_write(HttpClient* c, const char* endpoint, const char* method,
 
 int http_client_read(HttpClient* c, uint8_t* buf, int len,
                      ResponseCallback callback) {
-    int recived = TCPClient_ReadAll(&c->tcp_client, buf, len);
+    int recived = tcp_client_read_all(&c->tcp_client, buf, len);
     callback((char*)buf);
     return recived;
 }
 
 void http_client_disconnect(HttpClient* c) {
-    TCPClient_Disconnect(&c->tcp_client);
+    tcp_client_disconnect(&c->tcp_client);
 }
 
-void http_client_dispose(HttpClient* c) { TCPClient_Dispose(&c->tcp_client); }
+void http_client_dispose(HttpClient* c) { tcp_client_dispose(&c->tcp_client); }
 
 void http_client_dispose_ptr(HttpClient* c) {
     http_client_dispose(c);

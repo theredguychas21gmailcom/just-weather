@@ -6,23 +6,23 @@
 #include "http_server_connection.h"
 #include "smw.h"
 
-typedef int (*HTTPServer_OnConnection)(void*                 _Context,
-                                       HTTPServerConnection* _Connection);
+typedef int (*HttpServerOnConnection)(void*                 context,
+                                      HTTPServerConnection* connection);
 
 typedef struct {
-    HTTPServer_OnConnection onConnection;
+    HttpServerOnConnection onConnection;
 
     TCPServer tcpServer;
     smw_task* task;
 
 } HTTPServer;
 
-int HTTPServer_Initiate(HTTPServer*             _Server,
-                        HTTPServer_OnConnection _OnConnection);
-int HTTPServer_InitiatePtr(HTTPServer_OnConnection _OnConnection,
-                           HTTPServer**            _ServerPtr);
+int http_server_initiate(HTTPServer*            server,
+                         HttpServerOnConnection on_connection);
+int http_server_initiate_ptr(HttpServerOnConnection on_connection,
+                             HTTPServer**           server_ptr);
 
-void HTTPServer_Dispose(HTTPServer* _Server);
-void HTTPServer_DisposePtr(HTTPServer** _ServerPtr);
+void http_server_dispose(HTTPServer* server);
+void http_server_dispose_ptr(HTTPServer** server_ptr);
 
-#endif //HTTP_SERVER_H
+#endif // HTTP_SERVER_H
