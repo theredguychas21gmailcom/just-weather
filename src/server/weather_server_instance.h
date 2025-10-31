@@ -2,7 +2,7 @@
 #ifndef __WeatherServerInstance_h_
 #define __WeatherServerInstance_h_
 
-#include "HTTPServer/HTTPServerConnection.h"
+#include "http_server/http_server_connection.h"
 #include "smw.h"
 
 typedef struct {

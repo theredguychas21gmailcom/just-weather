@@ -4,7 +4,7 @@
 #ifndef __HTTPClient_h_
 #define __HTTPClient_h_
 
-#include "TCPClient.h"
+#include "tcp_client.h"
 
 #include <netdb.h>
 #include <stdint.h>

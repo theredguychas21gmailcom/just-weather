@@ -1,4 +1,4 @@
-#include "WeatherServerInstance.h"
+#include "weather_server_instance.h"
 
 #include <stdlib.h>
 #include <stdio.h>

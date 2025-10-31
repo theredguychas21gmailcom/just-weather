@@ -2,8 +2,8 @@
 #ifndef __HTTPServer_h_
 #define __HTTPServer_h_
 
-#include "../TCPServer.h"
-#include "HTTPServerConnection.h"
+#include "../tcp_server.h"
+#include "http_server_connection.h"
 #include "smw.h"
 
 typedef int (*HTTPServer_OnConnection)(void*                 _Context,

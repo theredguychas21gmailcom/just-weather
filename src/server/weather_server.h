@@ -2,8 +2,8 @@
 #ifndef __WeatherServer_h_
 #define __WeatherServer_h_
 
-#include "HTTPServer/HTTPServer.h"
-#include "WeatherServerInstance.h"
+#include "http_server/http_server.h"
+#include "weather_server_instance.h"
 #include "linked_list.h"
 #include "smw.h"
 

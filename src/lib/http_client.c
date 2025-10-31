@@ -1,6 +1,6 @@
-#include "HTTPClient.h"
+#include "http_client.h"
 
-#include "TCPClient.h"
+#include "tcp_client.h"
 
 #include <stddef.h>
 #include <stdint.h>

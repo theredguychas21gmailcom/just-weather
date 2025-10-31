@@ -1,4 +1,4 @@
-#include "TCPClient.h"
+#include "tcp_client.h"
 
 int TCPClient_Initiate(TCPClient* c, int fd) {
     c->fd = fd;
