@@ -1,6 +1,7 @@
 #ifndef SMW_H
 #define SMW_H
 
+#include "linked_list.h"
 #include <stdint.h>
 
 #ifndef SMW_MAX_TASKS
@@ -14,8 +15,7 @@ typedef struct {
 } SmwTask;
 
 typedef struct {
-    SmwTask tasks[SMW_MAX_TASKS];
-
+    LinkedList* tasks;
 } Smw;
 
 extern Smw g_smw;
