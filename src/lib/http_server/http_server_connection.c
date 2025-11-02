@@ -16,11 +16,12 @@ void http_server_connection_task_work(void* context, uint64_t mon_time);
 int http_server_connection_initiate(HTTPServerConnection* connection, int fd) {
     tcp_client_initiate(&connection->tcpClient, fd);
     connection->read_buffer      = NULL;
-    connection->read_buffer_size = 0;
     connection->method           = NULL;
     connection->request_path     = NULL;
     connection->host             = NULL;
     connection->write_buffer     = NULL;
+    connection->body             = NULL;
+    connection->read_buffer_size = 0;
     connection->content_len      = 0;
     connection->write_size       = 0;
     connection->write_offset     = 0;
@@ -85,21 +86,13 @@ int http_server_connection_send(HTTPServerConnection* connection) {
 
     // Finished sending
     if (connection->write_offset >= connection->write_size) {
-        if (connection->write_buffer) {
-            free(connection->write_buffer);
-        }
-        connection->write_buffer = NULL;
-        connection->write_size   = 0;
-        connection->write_offset = 0;
-        // Switch back to receive for next request
-        //
         connection->state = HTTP_SERVER_CONNECTION_STATE_DISPOSE;
     }
 
     return 0;
 }
 
-// TODO: DIVIDE THIS FN UP INTO SMALLER PIECES FOR EASIER READING AND CHANGING
+// TODO: DIVIDE THIS FN UP INTO SMALLER PIECES FOR EASIER READING ETC
 int http_server_connection_receive(HTTPServerConnection* connection) {
     if (!connection) {
         return -1;
@@ -229,24 +222,33 @@ void http_server_connection_dispose(HTTPServerConnection* connection) {
         connection->task = NULL;
     }
 
+    // Dispose TCP client
     tcp_client_dispose(&connection->tcpClient);
 
+    // Free all dynamically allocated memory
     free(connection->read_buffer);
-    free(connection->body);
-    free(connection->method);
-    free(connection->host);
-    free(connection->request_path);
-    free(connection->write_buffer);
+    connection->read_buffer = NULL;
 
-    connection->read_buffer      = NULL;
-    connection->method           = NULL;
-    connection->host             = NULL;
-    connection->request_path     = NULL;
-    connection->write_buffer     = NULL;
-    connection->body             = NULL;
+    free(connection->body);
+    connection->body = NULL;
+
+    free(connection->method);
+    connection->method = NULL;
+
+    free(connection->request_path);
+    connection->request_path = NULL;
+
+    free(connection->host);
+    connection->host = NULL;
+
+    free(connection->write_buffer);
+    connection->write_buffer = NULL;
+
     connection->read_buffer_size = 0;
     connection->write_size       = 0;
     connection->write_offset     = 0;
+    connection->body_start       = 0;
+    connection->content_len      = 0;
 }
 
 void http_server_connection_dispose_ptr(HTTPServerConnection** connection_ptr) {

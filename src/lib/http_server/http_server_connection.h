@@ -28,6 +28,8 @@ typedef enum {
 typedef struct {
     TCPClient tcpClient;
 
+    SmwTask*                      task;
+    HttpServerConnectionState     state;
     void*                         context;
     HttpServerConnectionOnRequest onRequest;
 
@@ -41,9 +43,6 @@ typedef struct {
 
     uint8_t* body;
     size_t   body_start;
-
-    SmwTask*                  task;
-    HttpServerConnectionState state;
 
     uint8_t* write_buffer;
     size_t   write_size;

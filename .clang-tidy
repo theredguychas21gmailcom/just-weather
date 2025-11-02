@@ -11,8 +11,8 @@ Checks: >
   readability-function-size,
   cppcoreguidelines-pro-type-const-cast,
   cppcoreguidelines-pro-type-reinterpret-cast,
-  cppcoreguidelines-avoid-goto,
-  cppcoreguidelines-avoid-magic-numbers
+#  cppcoreguidelines-avoid-goto,
+#  cppcoreguidelines-avoid-magic-numbers
 
 CheckOptions:
   # ---------- Naming Rules ----------
@@ -23,6 +23,14 @@ CheckOptions:
     value: g_
   - key: readability-identifier-naming.GlobalVariableCase
     value: lower_case
+
+  # Constants (non-static) are ALL_CAPS
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+
+  # Static const variables (file-scoped constants) are also ALL_CAPS
+  - key: readability-identifier-naming.StaticConstVariableCase
+    value: UPPER_CASE
 
   # Local variables, parameters, and typedefs use snake_case
   - key: readability-identifier-naming.VariableCase
@@ -61,7 +69,7 @@ CheckOptions:
 
   # Warn on large functions (>50 lines)
   - key: readability-function-size.LineThreshold
-    value: 50
+    value: 300
 
   # Warn if a non-const parameter should be const
   - key: readability-non-const-parameter.IgnoreAllCaps

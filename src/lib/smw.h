@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#ifndef smw_max_tasks
-#    define smw_max_tasks 16
+#ifndef SMW_MAX_TASKS
+#    define SMW_MAX_TASKS 16
 #endif
 
 typedef struct {
@@ -14,7 +14,7 @@ typedef struct {
 } SmwTask;
 
 typedef struct {
-    SmwTask tasks[smw_max_tasks];
+    SmwTask tasks[SMW_MAX_TASKS];
 
 } Smw;
 
