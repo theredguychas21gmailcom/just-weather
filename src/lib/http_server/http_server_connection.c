@@ -110,7 +110,6 @@ int http_server_connection_receive(HTTPServerConnection* connection) {
     int bytes_read = tcp_client_read(&connection->tcpClient, chunk_buffer,
                                      sizeof(chunk_buffer));
 
-    printf("bytes_read: %d\n", bytes_read);
     if (bytes_read < 0) {
         return -1; // real error
     } else if (bytes_read == 0) {
