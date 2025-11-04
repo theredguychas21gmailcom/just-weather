@@ -153,24 +153,50 @@ build/<mode>/server/just-weather
 build/<mode>/client/just-weather
 ```
 
-## API DOCS
+## Weather API Documentation
 
-Base URL: http://<host>:8080
+**Base URL:**  
+```
+http://TOD
+```
 
-Endpoints
+---
 
-Method	Endpoint	                        Description
-GET	    /current?lat=<float>&lon=<float>    Returns current weather data for coordinates
+### Endpoints
 
-Example:
+### 1. Get Current Weather
+
+**Endpoint:**  
+```
+GET /current
+```
+
+**Description:**  
+Retrieves the current weather data for the specified geographic coordinates.
+
+**Query Parameters:**  
+
+| Parameter | Type   | Required | Description                        |
+|-----------|--------|----------|------------------------------------|
+| `lat`     | float  | Yes      | Latitude of the location (e.g., 59.33) |
+| `lon`     | float  | Yes      | Longitude of the location (e.g., 18.07) |
+
+**Example Request:**  
 ```bash
 curl "http://localhost:8080/current?lat=59.33&lon=18.07"
 ```
 
-Response:
-```bash
+**Response:**  
+
+- **Status Code:** `200 OK`  
+- **Content Type:** `application/json`  
+
+```json
 {
-  "coords": { "lat": 59.33, "lon": 18.07 },
+  "coords": {
+    "lat": 59.33,
+    "lon": 18.07
+  },
   "current": {
     "temperature_c": 8.5,
     "humidity": 75,
@@ -180,43 +206,17 @@ Response:
 }
 ```
 
-TCP Protocol
+**Response Fields:**  
 
-Default port: 9000
-
-Example session (using netcat):
-```bash
-$ nc localhost 9000
-PING
-→ PONG
-
-GET WEATHER 59.33 18.07
-→ {"temperature_c":8.5,"wind_mps":3.2,"humidity":75}
-
-Error codes:
-ERR 100 BAD_REQUEST
-ERR 404 NOT_FOUND
-ERR 502 UPSTREAM_ERROR
-ERR 500 INTERNAL
-```
-
-## Design Notes
-
-- HTTP server implemented manually via sockets in http_server_connection.c
-
-- TCP server supports multiple clients using select()
- 
-- Weather Server Instance performs all Open-Meteo fetches and JSON parsing
-
-- Linked list used for handling concurrent request structures
-
-- libcurl handles outbound HTTP calls to the Open-Meteo API
-
-## 🧭 Endpoint: Get Current Weather by Coordinates
-
-### **GET** `/v1/current/{lat}/{long}`
-
-Retrieve the **current weather data** for the specified geographic coordinates.
+| Field                  | Type      | Description                                    |
+|------------------------|-----------|------------------------------------------------|
+| `coords.lat`           | float     | Latitude of the requested location           |
+| `coords.lon`           | float     | Longitude of the requested location          |
+| `current.temperature_c`| float     | Current temperature in Celsius               |
+| `current.humidity`     | integer   | Current humidity percentage                  |
+| `current.wind_mps`     | float     | Current wind speed in meters per second      |
+| `current.wind_deg`     | integer   | Wind direction in degrees                    |
+| `updated_at`           | string    | ISO 8601 timestamp of the last update        |
 
 ## Authors
 
