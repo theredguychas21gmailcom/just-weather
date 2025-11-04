@@ -1,29 +1,73 @@
-# Etherskies
+# Just Weather
 
-> A CLI weather tool for checking current weather conditions in cities worldwide.
+> A lightweight C weather relay server providing both TCP and HTTP APIs powered by Open-Meteo.
 
-Etherskies is a command-line weather application that fetches real-time weather data from Open-Meteo API. Built as a school project at Chas Academy (SUVX25) by Team Stockholm 1.
+Just Weather is a **network server** built as a school project at **Chas Academy (SUVX25)** by **Team Stockholm 3**.  
+It acts as a bridge between clients and [open-meteo.com](https://open-meteo.com), providing real-time weather data via both TCP and HTTP interfaces.
 
-![C](https://img.shields.io/badge/c-%2300599C.svg?style=flat&logo=c&logoColor=white)
+![C](https://img.shields.io/badge/C-%2300599C.svg?style=flat&logo=c&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
-[![Check Formatting](https://github.com/timackevald/etherskies/actions/workflows/clang-format.yml/badge.svg)](https://github.com/timackevald/etherskies/actions/workflows/clang-format.yml)
+[![Build](https://img.shields.io/badge/build-make-blue.svg)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Features
+---
 
-- **Real-time weather data** - Temperature, wind speed, and humidity
-- **Smart caching** - Data cached for 15 minutes to reduce API calls
-- **16 Swedish cities** - Pre-configured with major Swedish cities
-- **Persistent cache** - Saves city data between sessions
-- **Fast lookups** - Doubly-linked list implementation for efficient operations
+## ✨ Features
 
-## Prerequisites
+- **Dual-protocol support** — access data via HTTP or TCP  
+- **Live weather data** — temperature, humidity, and wind speed  
+- **Open-Meteo integration** — no API key required  
+- **Efficient modular design** — separate libraries for HTTP, TCP, and JSON  
+- **C99-compatible** — portable and minimal dependencies  
 
-Before building Etherskies, ensure you have the following installed:
+---
 
-- GCC (C99 compatible)
-- libcurl development files
-- Jansson library (linked via symlink)
-- Make
+## 🧱 Architecture
+
+Client (HTTP or TCP)
+↓
+Just Weather Server
+↓
+Weather Server Instance
+↓
+Open-Meteo API
+
+
+The **Weather Server Instance** handles the actual communication with the external API and returns parsed JSON data to either HTTP or TCP clients.
+
+---
+
+## 🧩 Project Structure
+
+.
+├── Makefile
+├── LICENSE
+├── src/
+│ ├── lib/
+│ │ ├── http_server_connection.[ch]
+│ │ ├── tcp_server.[ch]
+│ │ ├── tcp_client.[ch]
+│ │ ├── linked_list.[ch]
+│ │ ├── smw.[ch]
+│ │ └── utils.h
+│ └── server/
+│ ├── main.c
+│ ├── weather_server.[ch]
+│ ├── weather_server_instance.[ch]
+│ └── ...
+└── lib/
+└── jansson/ # JSON parsing library (linked)
+
+
+---
+
+## ⚙️ Requirements
+
+- Linux / WSL environment  
+- GCC (C99 compliant)  
+- **libcurl** (for HTTP requests)  
+- **jansson** (included as submodule or symlink)  
+- `make`
 
 ### Installing Dependencies
 
@@ -46,7 +90,7 @@ brew install curl
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/timackevald/etherskies.git
+git clone https://github.com/Stockholm-3/just-weather.git
 cd etherskies
 ```
 
@@ -59,7 +103,7 @@ git clone --branch lib --single-branch https://github.com/timackevald/etherskies
 This will create a lib folder outside of the root with all library source files.
 
 The project uses a symlink to access the Jansson library. The symlink should point to:
-```
+```bash
 lib/jansson -> ../../lib/jansson
 ```
 More symmlinks may be added in the future.
@@ -75,129 +119,94 @@ ln -s ../../lib/jansson lib/
 make run
 ```
 
-## Usage
-
-When you run Etherskies, you'll see a list of available cities:
-
-```
-Stockholm
-Göteborg
-Malmö
-Uppsala
-Västerås
-...
-
-Select a city: Stockholm
-
-You selected: Stockholm
-
-Current Weather for Stockholm:
-Temperature: 8.50 °C
-Wind speed: 3.20 m/s
-Humidity: 75.00 %
-```
-
-Type `q` to exit the application.
-
-## Project Structure
-
-```
-etherskies/
-├── src/
-│   ├── main.c           # Entry point
-│   └── libs/
-│       ├── city.c       # City list management & caching
-│       ├── city.h
-│       ├── HTTP.c       # Network operations & JSON parsing
-│       ├── HTTP.h
-│       ├── meteo.c      # API URL builder
-│       ├── meteo.h
-│       └── tinydir.h    # Directory traversal (header-only)
-├── lib/
-│   └── jansson/         # Symlink to external Jansson library
-├── includes/
-│   └── jansson_config.h # Jansson configuration
-├── build/               # Compiled objects and binary
-├── cities/              # Cache directory (created at runtime)
-├── Makefile
-└── README.md
-```
-
-## How It Works
-
-### Caching Strategy
-
-Etherskies implements a three-tier caching system:
-
-1. **In-memory cache** - Data stored in the linked list (fastest)
-2. **File cache** - JSON files in `./cities/` directory (persistent)
-3. **Network fetch** - Only when data is older than 15 minutes
-
-### Data Flow
-
-```
-User selects city
-    ↓
-Check in-memory data (< 15 min old?)
-    ↓ No
-Check file cache (exists & < 15 min old?)
-    ↓ No
-Fetch from Open-Meteo API
-    ↓
-Parse JSON response
-    ↓
-Update memory & save to file cache
-    ↓
-Display to user
-```
-
-### Bootstrap Cities
-
-On first run, 16 Swedish cities are automatically added:
-- Stockholm, Göteborg, Malmö, Uppsala, Västerås
-- Örebro, Linköping, Helsingborg, Jönköping, Norrköping
-- Lund, Gävle, Sundsvall, Umeå, Luleå, Kiruna
-
-## Building from Source
-
-### Build Options
-
+Release Build 
 ```bash
-make          # Build the project
-make run      # Build and run
-make clean    # Remove build artifacts
+make release
 ```
 
-### Compiler Flags
-
-- `-std=c99` - C99 standard
-- `-Wall -Wextra` - Enable warnings
-- `-MMD -MP` - Generate dependency files
-- `-g` - Debug symbols
-
-## Dependencies
-
-### External Libraries
-
-- **libcurl** - HTTP requests
-- **Jansson** - JSON parsing (linked via symlink to external library)
-
-The Jansson library is accessed via a relative symlink at `lib/jansson`. Ensure the Jansson library is available at `../../jansson/libs/jansson` relative to your project root, or update the symlink to point to your Jansson installation.
-
-## API
-
-This project uses the [Open-Meteo API](https://open-meteo.com/), which is free and doesn't require an API key.
-
-**Example API call:**
+Run Server
+```bash
+make run-server
 ```
-https://api.open-meteo.com/v1/forecast?latitude=59.33&longitude=18.07&current=temperature_2m,relative_humidity_2m,wind_speed_10m
+
+Binaries will be created in:
+```bash
+build/<mode>/server/just-weather
+build/<mode>/client/just-weather
 ```
+
+## HTTP API
+
+Base URL: http://<host>:8080
+
+Endpoints
+
+Method	Endpoint	                        Description
+GET	    /health	                            Returns server status
+GET	    /weather?lat=<float>&lon=<float>    Returns current weather data for coordinates
+
+Example:
+```bash
+curl "http://localhost:8080/weather?lat=59.33&lon=18.07"
+```
+
+Response:
+```bash
+{
+  "source": "open-meteo",
+  "coords": { "lat": 59.33, "lon": 18.07 },
+  "current": {
+    "temperature_c": 8.5,
+    "humidity": 75,
+    "wind_mps": 3.2
+  },
+  "updated_at": "2025-11-04T08:00:00Z"
+}
+```
+
+TCP Protocol
+
+Default port: 9000
+
+Example session (using netcat):
+```bash
+$ nc localhost 9000
+PING
+→ PONG
+
+GET WEATHER 59.33 18.07
+→ {"temperature_c":8.5,"wind_mps":3.2,"humidity":75}
+
+Error codes:
+ERR 100 BAD_REQUEST
+ERR 404 NOT_FOUND
+ERR 502 UPSTREAM_ERROR
+ERR 500 INTERNAL
+```
+
+## Design Notes
+
+- HTTP server implemented manually via sockets in http_server_connection.c
+
+- TCP server supports multiple clients using select()
+ 
+- Weather Server Instance performs all Open-Meteo fetches and JSON parsing
+
+- Linked list used for handling concurrent request structures
+
+- libcurl handles outbound HTTP calls to the Open-Meteo API
+
+## 🧭 Endpoint: Get Current Weather by Coordinates
+
+### **GET** `/v1/current/{lat}/{long}`
+
+Retrieve the **current weather data** for the specified geographic coordinates.
 
 ## Authors
 
-**Team Stockholm 1**
+**Team Stockholm 3**
 - Chas Academy, SUVX25
-- 2025-09-10
+- 2025-11-04
 
 ## License
 
@@ -208,5 +217,4 @@ This project is licensed under the MIT License - see the [License](LICENSE) file
 - [Open-Meteo API](https://open-meteo.com/) - Free weather API
 - [Jansson](https://github.com/akheron/jansson) - JSON parsing library
 - [libcurl](https://curl.se/libcurl/) - HTTP client library
-- [tinydir](https://github.com/cxong/tinydir) - Directory traversal library
 - Chas Academy instructor and classmates
