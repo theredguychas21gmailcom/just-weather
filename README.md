@@ -153,25 +153,23 @@ build/<mode>/server/just-weather
 build/<mode>/client/just-weather
 ```
 
-## HTTP API
+## API DOCS
 
 Base URL: http://<host>:8080
 
 Endpoints
 
 Method	Endpoint	                        Description
-GET	    /health	                            Returns server status
-GET	    /weather?lat=<float>&lon=<float>    Returns current weather data for coordinates
+GET	    /current?lat=<float>&lon=<float>    Returns current weather data for coordinates
 
 Example:
 ```bash
-curl "http://localhost:8080/weather?lat=59.33&lon=18.07"
+curl "http://localhost:8080/current?lat=59.33&lon=18.07"
 ```
 
 Response:
 ```bash
 {
-  "source": "open-meteo",
   "coords": { "lat": 59.33, "lon": 18.07 },
   "current": {
     "temperature_c": 8.5,
